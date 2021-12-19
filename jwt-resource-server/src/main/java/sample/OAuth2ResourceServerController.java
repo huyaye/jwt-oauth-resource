@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 /**
  * @author Josh Cummings
  */
@@ -30,8 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class OAuth2ResourceServerController {
 
 	@GetMapping("/")
-	public String index(@AuthenticationPrincipal Jwt jwt) {
-		return String.format("Hello, %s!", jwt.getSubject());
+	public Map<String, Object> index(@AuthenticationPrincipal Jwt jwt) {
+		return jwt.getClaims();
 	}
 
 	@GetMapping("/message")

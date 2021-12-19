@@ -21,9 +21,15 @@ public class JwtController {
         return new ResponseEntity<>(jwt, HttpStatus.CREATED);
     }
 
-    @GetMapping("/rsa")
-    public ResponseEntity<String> getJwtByASymmetric1() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        String jwt = jwtService.createJwtRSA();
+    @GetMapping("/rsa1")
+    public ResponseEntity<String> getJwtByRSA1() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        String jwt = jwtService.createJwtRSA1();
+        return new ResponseEntity<>(jwt, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/rsa2")
+    public ResponseEntity<String> getJwtByRSA2() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        String jwt = jwtService.createJwtRSA2();
         return new ResponseEntity<>(jwt, HttpStatus.CREATED);
     }
 }

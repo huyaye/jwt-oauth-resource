@@ -16,15 +16,20 @@
 
 package sample;
 
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
+import com.nimbusds.jwt.proc.JWTClaimsSetAwareJWSKeySelector;
+import com.nimbusds.jwt.proc.JWTProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 
 /**
  * @author Josh Cummings
@@ -44,12 +49,39 @@ public class OAuth2ResourceServerSecurityConfiguration extends WebSecurityConfig
 					.antMatchers(HttpMethod.POST, "/message/**").hasAuthority("SCOPE_message:write")
 					.anyRequest().authenticated()
 			)
-			.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+			.oauth2ResourceServer(oauth -> {
+				oauth.jwt();
+				DefaultBearerTokenResolver tokenResolver = new DefaultBearerTokenResolver();
+				tokenResolver.setAllowFormEncodedBodyParameter(true);
+				tokenResolver.setAllowUriQueryParameter(true);
+				oauth.bearerTokenResolver(tokenResolver);
+			});
 		// @formatter:on
 	}
 
+	// 12.3.21. Bearer Token Resolution
+	/**
+	 * JWT 위치 커스터마이징
+	 * 1. header 의 HT-Access-Token
+	 * 2. request parameter 의 access_token
+	 * 3. url parameter 의 access_token
+	 * 4. Bearer
+	 */
+
 	@Bean
-	JwtDecoder jwtDecoder() {
-		return NimbusJwtDecoder.withJwkSetUri(this.jwkSetUri).build();
+	JWTProcessor jwtProcessor(JWTClaimsSetAwareJWSKeySelector keySelector) {
+		ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor();
+		jwtProcessor.setJWTClaimsSetAwareJWSKeySelector(keySelector);
+		return jwtProcessor;
 	}
+
+	@Bean
+	JwtDecoder jwtDecoder(JWTProcessor jwtProcessor) {
+		return new NimbusJwtDecoder(jwtProcessor);
+	}
+
+//	@Bean
+//	JwtDecoder jwtDecoder() {
+//		return NimbusJwtDecoder.withJwkSetUri(this.jwkSetUri).build();
+//	}
 }
